@@ -22,16 +22,24 @@ if "page" not in st.session_state:
 if "reset_input" not in st.session_state:
     st.session_state.reset_input = False
 
+
 # ===============================
 # LOAD MODEL
 # ===============================
-model = joblib.load("models/svm_model.pkl")
-vectorizer = joblib.load("models/vectorizer.pkl")
+@st.cache_resource
+def load_model():
+    model = joblib.load("models/svm_model.pkl")
+    vectorizer = joblib.load("models/vectorizer.pkl")
+    return model, vectorizer
+
+
+model, vectorizer = load_model()
 
 
 # ===============================
 # LOAD IMAGE
 # ===============================
+@st.cache_data
 def get_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
