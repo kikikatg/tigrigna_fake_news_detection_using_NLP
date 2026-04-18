@@ -28,9 +28,12 @@ if "reset_input" not in st.session_state:
 # LOAD PIPELINE (FIXED)
 # ===============================
 def load_pipeline():
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    import os
 
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     pipeline_path = os.path.join(BASE_DIR, "models", "pipeline.pkl")
+
+    st.write("Loading from:", pipeline_path)
 
     pipeline = joblib.load(pipeline_path)
 
@@ -41,11 +44,12 @@ pipeline = load_pipeline()
 
 st.write("Pipeline loaded ✔")
 
-# DEBUG CHECK
+st.write("Steps:", pipeline.named_steps)
+
 try:
     st.write("Has IDF:", hasattr(pipeline.named_steps["vectorizer"], "idf_"))
 except Exception as e:
-    st.write("Error accessing vectorizer:", e)
+    st.write("Error:", e)
 
 
 # ===============================
