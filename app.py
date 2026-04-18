@@ -27,7 +27,6 @@ if "reset_input" not in st.session_state:
 # ===============================
 # LOAD PIPELINE (FIXED)
 # ===============================
-@st.cache_resource
 def load_pipeline():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -40,8 +39,13 @@ def load_pipeline():
 
 pipeline = load_pipeline()
 
-# DEBUG
 st.write("Pipeline loaded ✔")
+
+# DEBUG CHECK
+try:
+    st.write("Has IDF:", hasattr(pipeline.named_steps["vectorizer"], "idf_"))
+except Exception as e:
+    st.write("Error accessing vectorizer:", e)
 
 
 # ===============================
@@ -186,7 +190,7 @@ if st.session_state.page == "home":
 
                 if hasattr(pipeline.named_steps["model"], "decision_function"):
                     score = pipeline.named_steps["model"].decision_function(
-                        pipeline.named_steps["tfidf"].transform([processed])
+                        pipeline.named_steps["vectorizer"].transform([processed])
                     )[0]
                 else:
                     score = pipeline.predict_proba([processed])[0][1]
