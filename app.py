@@ -265,15 +265,36 @@ elif st.session_state.page == "history":
             """,
                 unsafe_allow_html=True,
             )
+
 # ===============================
 # ABOUT PAGE
-## ===============================
+# ===============================
 elif st.session_state.page == "about":
     st.title("ℹ️ About This Project")
     st.markdown(
-        """ ## 📌 Project Overview The **Tigrigna Fake News Detection System** is an AI-powered web application designed to automatically classify news content as **REAL** or **FAKE** using Natural Language Processing (NLP) and Machine Learning. This system focuses on **low-resource languages like Tigrigna**, where misinformation detection tools are very limited. --- ## 🎯 Objectives - Detect fake news in Tigrigna language - Provide real-time classification - Reduce misinformation spread - Build an intelligent NLP-based system --- ## 🧠 Technologies Used ### 🔹 NLP Techniques - Text preprocessing (cleaning, normalization) - Tokenization - Stopword removal (custom Tigrigna stopwords) ### 🔹 Feature Extraction - TF-IDF Vectorization ### 🔹 Machine Learning - Naive Bayes - Logistic Regression - Support Vector Machine (Final Model) --- ## 📊 Model Performance - Accuracy: ~96% - High precision and recall - Strong generalization --- ## ⚙️ System Features - Text input and analysis - Real-time prediction - Confidence visualization - Prediction history - Interactive UI --- ## 🏗️ Architecture - Streamlit UI - ML Model (SVM) - Preprocessing pipeline --- ## 🚀 Future Improvements - Convert to full-stack (React + FastAPI) - Add deep learning (LSTM / Transformers) - Expand dataset - API integration --- ## 💡 Impact This project demonstrates how AI can be applied to: - Fight misinformation - Support local languages - Build real-world intelligent systems --- ## 🔗 GitHub 👉 https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP """
+        """ 
+                ## 📌 Project Overview 
+                The **Tigrigna Fake News Detection System** is an AI-powered web application designed to automatically classify news content as **REAL** or **FAKE** using Natural Language Processing (NLP) and Machine Learning. This system focuses on **low-resource languages like Tigrigna**, where misinformation detection tools are very limited. ---
+                ## 🎯 Objectives 
+                - Detect fake news in Tigrigna language - Provide real-time classification - Reduce misinformation spread - Build an intelligent NLP-based system --- ## 🧠 Technologies Used 
+                ### 🔹 NLP Techniques
+                - Text preprocessing (cleaning, normalization) - Tokenization - Stopword removal (custom Tigrigna stopwords) 
+                ### 🔹 Feature Extraction
+                - TF-IDF Vectorization 
+                ### 🔹 Machine Learning
+                # - Naive Bayes - Logistic Regression - Support Vector Machine (Final Model) --- 
+                ## 📊 Model Performance - Accuracy: ~96% - High precision and recall - Strong generalization --- 
+                ## ⚙️ System Features
+                - Text input and analysis - Real-time prediction - Confidence visualization - Prediction history - Interactive UI --- 
+                ## 🏗️ Architecture 
+                - Streamlit UI - ML Model (SVM) - Preprocessing pipeline ---
+                ## 🚀 Future Improvements
+                - Convert to full-stack (React + FastAPI) - Add deep learning (LSTM / Transformers) - Expand dataset - API integration ---
+                ## 💡 Impact 
+                This project demonstrates how AI can be applied to: - Fight misinformation - Support local languages - Build real-world intelligent systems --- 
+                ## 🔗 GitHub 
+                👉 https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP """
     )
-
 # ===============================
 # FOOTER
 # ===============================
