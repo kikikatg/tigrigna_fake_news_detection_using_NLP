@@ -31,7 +31,7 @@ if "reset_input" not in st.session_state:
 def load_pipeline():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    pipeline_path = os.path.join(BASE_DIR, "models", "fake_news_pipeline.pkl")
+    pipeline_path = os.path.join(BASE_DIR, "models", "pipeline.pkl")
 
     pipeline = joblib.load(pipeline_path)
 
