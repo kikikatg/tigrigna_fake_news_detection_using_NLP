@@ -311,3 +311,9 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+st.write("Vectorizer fitted:", hasattr(vectorizer, "idf_"))
+
+if hasattr(vectorizer, "vocabulary_"):
+    st.write("Vocab size:", len(vectorizer.vocabulary_))
+else:
+    st.write("No vocabulary found ❌")
