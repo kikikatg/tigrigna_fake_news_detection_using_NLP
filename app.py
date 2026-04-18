@@ -36,7 +36,7 @@ def load_model():
 
     model = joblib.load(model_path)
     vectorizer = joblib.load(vectorizer_path)
-
+    st.write("Vectorizer path:", vectorizer_path)
     return model, vectorizer
 
 
