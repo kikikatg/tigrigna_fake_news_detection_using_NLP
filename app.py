@@ -51,7 +51,11 @@ try:
 except Exception as e:
     st.write("Error:", e)
 
+import os
 
+pipeline_path = os.path.join(BASE_DIR, "models", "pipeline.pkl")
+
+st.write("File size in app:", os.path.getsize(pipeline_path))
 # ===============================
 # LOAD IMAGE
 # ===============================
