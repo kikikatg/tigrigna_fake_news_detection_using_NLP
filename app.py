@@ -25,26 +25,23 @@ if "reset_input" not in st.session_state:
 
 
 # ===============================
-# LOAD MODEL
+# LOAD PIPELINE (FIXED)
 # ===============================
 @st.cache_resource
-def load_model():
+def load_pipeline():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    model_path = os.path.join(BASE_DIR, "models", "svm_model.pkl")
-    vectorizer_path = os.path.join(BASE_DIR, "models", "vectorizer.pkl")
+    pipeline_path = os.path.join(BASE_DIR, "models", "fake_news_pipeline.pkl")
 
-    model = joblib.load(model_path)
-    vectorizer = joblib.load(vectorizer_path)
-    st.write("Vectorizer path:", vectorizer_path)
-    return model, vectorizer
+    pipeline = joblib.load(pipeline_path)
+
+    return pipeline
 
 
-model, vectorizer = load_model()
+pipeline = load_pipeline()
 
-# DEBUG (safe after loading)
-st.write("Model loaded ✔")
-st.write("Vectorizer fitted:", hasattr(vectorizer, "idf_"))
+# DEBUG
+st.write("Pipeline loaded ✔")
 
 
 # ===============================
@@ -108,7 +105,7 @@ div.stButton > button {
 )
 
 # ===============================
-# SIDEBAR NAVIGATION
+# SIDEBAR
 # ===============================
 st.sidebar.markdown('<div class="sidebar-box">', unsafe_allow_html=True)
 
@@ -183,14 +180,16 @@ if st.session_state.page == "home":
                 time.sleep(1)
 
                 processed = preprocess(text)
-                vec = vectorizer.transform([processed])
-                prediction = model.predict(vec)[0]
 
-                # ✅ FIXED INDENTATION BLOCK
-                if hasattr(model, "decision_function"):
-                    score = model.decision_function(vec)[0]
+                # 🔥 FIX: use pipeline directly
+                prediction = pipeline.predict([processed])[0]
+
+                if hasattr(pipeline.named_steps["model"], "decision_function"):
+                    score = pipeline.named_steps["model"].decision_function(
+                        pipeline.named_steps["tfidf"].transform([processed])
+                    )[0]
                 else:
-                    score = model.predict_proba(vec)[0][1]
+                    score = pipeline.predict_proba([processed])[0][1]
 
                 percentage = min(100, int((abs(score) / 3) * 100))
 
@@ -203,13 +202,8 @@ if st.session_state.page == "home":
                     st.error(result)
                     st.markdown(f"### 🔴 {percentage}% Fake News")
 
-            # ===============================
-            # CUSTOM BAR (FIXED POSITION)
-            # ===============================
-            if prediction == 1:
-                bar_color = "#00bfff"
-            else:
-                bar_color = "#ff4d4d"
+            # BAR
+            bar_color = "#00bfff" if prediction == 1 else "#ff4d4d"
 
             st.markdown(
                 f"""
@@ -272,48 +266,18 @@ elif st.session_state.page == "history":
 elif st.session_state.page == "about":
     st.title("ℹ️ About This Project")
     st.markdown(
-        """ 
-                ## 📌 Project Overview 
-                The **Tigrigna Fake News Detection System** is an AI-powered web application designed to automatically classify news content as **REAL** or **FAKE** using Natural Language Processing (NLP) and Machine Learning. This system focuses on **low-resource languages like Tigrigna**, where misinformation detection tools are very limited. ---
-                ## 🎯 Objectives 
-                - Detect fake news in Tigrigna language - Provide real-time classification - Reduce misinformation spread - Build an intelligent NLP-based system --- ## 🧠 Technologies Used 
-                ### 🔹 NLP Techniques
-                - Text preprocessing (cleaning, normalization) - Tokenization - Stopword removal (custom Tigrigna stopwords) 
-                ### 🔹 Feature Extraction
-                - TF-IDF Vectorization 
-                ### 🔹 Machine Learning
-                # - Naive Bayes - Logistic Regression - Support Vector Machine (Final Model) --- 
-                ## 📊 Model Performance - Accuracy: ~96% - High precision and recall - Strong generalization --- 
-                ## ⚙️ System Features
-                - Text input and analysis - Real-time prediction - Confidence visualization - Prediction history - Interactive UI --- 
-                ## 🏗️ Architecture 
-                - Streamlit UI - ML Model (SVM) - Preprocessing pipeline ---
-                ## 🚀 Future Improvements
-                - Convert to full-stack (React + FastAPI) - Add deep learning (LSTM / Transformers) - Expand dataset - API integration ---
-                ## 💡 Impact 
-                This project demonstrates how AI can be applied to: - Fight misinformation - Support local languages - Build real-world intelligent systems --- 
-                ## 🔗 GitHub 
-                👉 https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP """
+        """ ## 📌 Project Overview The **Tigrigna Fake News Detection System** is an AI-powered web application designed to automatically classify news content as **REAL** or **FAKE** using Natural Language Processing (NLP) and Machine Learning. This system focuses on **low-resource languages like Tigrigna**, where misinformation detection tools are very limited. --- ## 🎯 Objectives - Detect fake news in Tigrigna language - Provide real-time classification - Reduce misinformation spread - Build an intelligent NLP-based system --- ## 🧠 Technologies Used ### 🔹 NLP Techniques - Text preprocessing (cleaning, normalization) - Tokenization - Stopword removal (custom Tigrigna stopwords) ### 🔹 Feature Extraction - TF-IDF Vectorization ### 🔹 Machine Learning # - Naive Bayes - Logistic Regression - Support Vector Machine (Final Model) --- ## 📊 Model Performance - Accuracy: ~96% - High precision and recall - Strong generalization --- ## ⚙️ System Features - Text input and analysis - Real-time prediction - Confidence visualization - Prediction history - Interactive UI --- ## 🏗️ Architecture - Streamlit UI - ML Model (SVM) - Preprocessing pipeline --- ## 🚀 Future Improvements - Convert to full-stack (React + FastAPI) - Add deep learning (LSTM / Transformers) - Expand dataset - API integration --- ## 💡 Impact This project demonstrates how AI can be applied to: - Fight misinformation - Support local languages - Build real-world intelligent systems --- ## 🔗 GitHub 👉 https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP """
     )
+
 # ===============================
 # FOOTER
 # ===============================
 st.markdown("---")
-
 st.markdown(
     """
-<div style='text-align:center; color:gray; font-size:14px; line-height:1.6;'>
-    🚀 <b>Tigrigna Fake News Detection System</b> <br>
-   Developed by <b>CSE Final Year Project Team</b> 👨‍💻👩‍💻 <br>
-    Built with Streamlit, NLP & Machine Learning <br>
-    © 2026 All Rights Reserved
+<div style='text-align:center; color:gray;'>
+🚀 Fake News Detection System
 </div>
 """,
     unsafe_allow_html=True,
 )
-st.write("Vectorizer fitted:", hasattr(vectorizer, "idf_"))
-
-if hasattr(vectorizer, "vocabulary_"):
-    st.write("Vocab size:", len(vectorizer.vocabulary_))
-else:
-    st.write("No vocabulary found ❌")
