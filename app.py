@@ -62,6 +62,8 @@ st.markdown(
 .stApp {
     background-color: #0e1117;
     color: white;
+    background-image: url("data:image/png;base64, YOUR_IMAGE_HERE");
+    background-size: cover;
 }
 
 .sidebar-box {
@@ -126,11 +128,21 @@ if st.session_state.page == "home":
 
     col1, col2 = st.columns([1, 1])
 
-    with col1:
-        st.markdown("...")
+with col1:
+    st.markdown(
+        """
+        <h1 style='color:#00ffcc;'>Fake News Detection</h1>
+        <h4>AI-powered system for detecting REAL vs FAKE news</h4>
+        <p style='color:#ccc;'>Built using NLP + Machine Learning (SVM)</p>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    with col2:
-        st.markdown("...")
+with col2:
+    st.markdown(
+        f'<img src="data:image/png;base64,{bg_image}" class="hero-img">',
+        unsafe_allow_html=True,
+    )
 
     st.markdown("---")
 
@@ -149,10 +161,10 @@ if st.session_state.page == "home":
         predict_clicked = st.button("🚀 Predict")
 
     # ✅ FIX: move prediction HERE
-    if predict_clicked:
+if predict_clicked:
 
-        if text.strip() == "":
-            st.warning("Enter text first")
+    if text.strip() == "":
+        st.warning("Enter text first")
 
     else:
         with st.spinner("Analyzing..."):
@@ -166,7 +178,7 @@ if st.session_state.page == "home":
             probability = 1 / (1 + np.exp(-raw_score))
             percentage = int(probability * 100)
 
-            score = raw_score  # ✅ FIXED
+            score = raw_score
 
             if prediction == 1:
                 result = "🟢 REAL NEWS"
@@ -197,7 +209,6 @@ if st.session_state.page == "home":
 
             st.write(f"Confidence Score: {score:.2f}")
 
-            # Save history
             st.session_state.history.append(
                 {
                     "text": text[:200],
