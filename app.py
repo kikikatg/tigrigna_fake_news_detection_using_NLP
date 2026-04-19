@@ -135,10 +135,8 @@ if st.session_state.page == "home":
     st.markdown("---")
 
     text = st.text_area(
-    "Enter News Text:",
-    height=200,
-    placeholder="Enter the news here..."
-)
+        "Enter News Text:", height=200, placeholder="Enter the news here..."
+    )
 
     col1, col2 = st.columns(2)
 
@@ -153,8 +151,8 @@ if st.session_state.page == "home":
     # ✅ FIX: move prediction HERE
     if predict_clicked:
 
-    if text.strip() == "":
-        st.warning("Enter text first")
+        if text.strip() == "":
+            st.warning("Enter text first")
 
     else:
         with st.spinner("Analyzing..."):
@@ -246,7 +244,7 @@ elif st.session_state.page == "about":
     st.title("ℹ️ About This Project")
 
     st.markdown(
-    """
+        """
 ### 🧠 Tigrigna Fake News Detection System
 
 This project is an AI-powered web application designed to classify news content as **REAL** or **FAKE** using Natural Language Processing and Machine Learning.
@@ -294,7 +292,7 @@ Mekelle University
 ### 🔗 GitHub
 https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP
 """
-)
+    )
 # ===============================
 # FOOTER
 # ===============================
