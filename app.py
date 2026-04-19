@@ -5,6 +5,7 @@ import time
 import base64
 from datetime import datetime
 import os
+import numpy as np
 
 # ===============================
 # PAGE CONFIG
@@ -117,6 +118,7 @@ if st.sidebar.button("📜 History"):
 
 st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
+
 # ===============================
 # HOME PAGE
 # ===============================
@@ -125,37 +127,18 @@ if st.session_state.page == "home":
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.markdown(
-            """
-        <h1 style='color:#00ffcc;'>Fake News Detection</h1>
-        <h4>AI-powered system for detecting REAL vs FAKE news</h4>
-        <p style='color:#ccc;'>Built using NLP + Machine Learning (SVM)</p>
-        """,
-            unsafe_allow_html=True,
-        )
+        st.markdown("...")
 
     with col2:
-        st.markdown(
-            f'<img src="data:image/png;base64,{bg_image}" class="hero-img">',
-            unsafe_allow_html=True,
-        )
+        st.markdown("...")
 
     st.markdown("---")
 
-    default_text = ""
-    if st.session_state.reset_input:
-        default_text = ""
-        st.session_state.reset_input = False
-
     text = st.text_area(
-        "Enter News Text:",
-        value=default_text,
-        height=200,
-        key="input_area",
-        placeholder="Enter the news here...",
-    )
-
-    st.write(f"Words: {len(text.split())} | Characters: {len(text)}")
+    "Enter News Text:",
+    height=200,
+    placeholder="Enter the news here..."
+)
 
     col1, col2 = st.columns(2)
 
@@ -167,43 +150,36 @@ if st.session_state.page == "home":
     with col2:
         predict_clicked = st.button("🚀 Predict")
 
-    import numpy as np
-
-if predict_clicked:
+    # ✅ FIX: move prediction HERE
+    if predict_clicked:
 
     if text.strip() == "":
         st.warning("Enter text first")
 
     else:
         with st.spinner("Analyzing..."):
-            time.sleep(1)
-
             processed = preprocess(text)
 
-            # Prediction
             prediction = pipeline.predict([processed])[0]
 
-            # Vectorize
             vectorized = pipeline.named_steps["vectorizer"].transform([processed])
-
-            # Score
             raw_score = pipeline.named_steps["model"].decision_function(vectorized)[0]
 
-            # Convert to probability
             probability = 1 / (1 + np.exp(-raw_score))
             percentage = int(probability * 100)
 
-            score = raw_score
+            score = raw_score  # ✅ FIXED
 
-            # Result display
             if prediction == 1:
                 result = "🟢 REAL NEWS"
+                display_percentage = percentage
                 st.success(result)
-                st.markdown(f"### 🟢 {percentage}% Confidence (Real)")
+                st.markdown(f"### 🟢 {display_percentage}% Confidence (Real)")
             else:
                 result = "🔴 FAKE NEWS"
+                display_percentage = 100 - percentage
                 st.error(result)
-                st.markdown(f"### 🔴 {100 - percentage}% Confidence (Fake)")
+                st.markdown(f"### 🔴 {display_percentage}% Confidence (Fake)")
 
             # Progress bar
             bar_color = "#00bfff" if prediction == 1 else "#ff4d4d"
@@ -212,8 +188,8 @@ if predict_clicked:
                 f"""
                 <div style='display:flex; justify-content:center; margin-top:10px;'>
                     <div style='width:50%; background:#ffffff; border-radius:10px; overflow:hidden;'>
-                        <div style='width:{percentage}%; background:{bar_color}; padding:8px 0; text-align:center; color:black; font-weight:bold;'>
-                            {percentage}%
+                        <div style='width:{display_percentage}%; background:{bar_color}; padding:8px 0; text-align:center; color:black; font-weight:bold;'>
+                            {display_percentage}%
                         </div>
                     </div>
                 </div>
@@ -266,9 +242,10 @@ elif st.session_state.page == "history":
 # ===============================
 # ABOUT PAGE
 # ===============================
-st.title("ℹ️ About This Project")
+elif st.session_state.page == "about":
+    st.title("ℹ️ About This Project")
 
-st.markdown(
+    st.markdown(
     """
 ### 🧠 Tigrigna Fake News Detection System
 
