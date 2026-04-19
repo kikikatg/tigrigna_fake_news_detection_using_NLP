@@ -1,11 +1,10 @@
 import streamlit as st
 import joblib
 from utils.preprocessing import preprocess
-import time
 import base64
 from datetime import datetime
-import os
 import numpy as np
+import os
 
 # ===============================
 # PAGE CONFIG
@@ -21,22 +20,17 @@ if "history" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-if "reset_input" not in st.session_state:
-    st.session_state.reset_input = False
+if "prediction_done" not in st.session_state:
+    st.session_state.prediction_done = False
 
 
 # ===============================
-# LOAD PIPELINE (FIXED)
+# LOAD PIPELINE
 # ===============================
 def load_pipeline():
-    import os
-
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     pipeline_path = os.path.join(BASE_DIR, "models", "pipeline.pkl")
-
-    pipeline = joblib.load(pipeline_path)
-
-    return pipeline
+    return joblib.load(pipeline_path)
 
 
 pipeline = load_pipeline()
@@ -54,63 +48,63 @@ def get_base64(path):
 bg_image = get_base64("assets/ui-background.png")
 
 # ===============================
-# CSS
+# CSS (FIXED BACKGROUND IMAGE)
 # ===============================
 st.markdown(
-    """
+    f"""
 <style>
-.stApp {
+.stApp {{
     background-color: #0e1117;
     color: white;
-    background-image: url("data:image/png;base64, YOUR_IMAGE_HERE");
+    background-image: url("data:image/png;base64,{bg_image}");
     background-size: cover;
-}
+}}
 
-.sidebar-box {
+.sidebar-box {{
     background: #1c1f26;
     padding: 15px;
     border-radius: 10px;
     border: 1px solid #333;
-}
+}}
 
-.hero-img {
+.hero-img {{
     width: 100%;
     border-radius: 10px;
-}
+}}
 
-textarea {
+textarea {{
     background-color: white !important;
     color: black !important;
     border-radius: 8px !important;
     padding: 10px !important;
-    caret-color: black !important;
-}
+}}
 
-div.stButton > button {
+div.stButton > button {{
     background-color: #00ffcc;
     color: black;
     font-weight: bold;
     border-radius: 8px;
-}
+}}
 
-.history-box {
+.history-box {{
     background: #1c1f26;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 10px;
-}
+}}
 </style>
 """,
     unsafe_allow_html=True,
 )
 
 # ===============================
-# SIDEBAR
+# SIDEBAR NAVIGATION
 # ===============================
 st.sidebar.markdown('<div class="sidebar-box">', unsafe_allow_html=True)
 
 if st.sidebar.button("🏠 Home"):
     st.session_state.page = "home"
+    st.session_state.prediction_done = False
 
 if st.sidebar.button("ℹ️ About"):
     st.session_state.page = "about"
@@ -120,7 +114,6 @@ if st.sidebar.button("📜 History"):
 
 st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
-
 # ===============================
 # HOME PAGE
 # ===============================
@@ -128,21 +121,21 @@ if st.session_state.page == "home":
 
     col1, col2 = st.columns([1, 1])
 
-with col1:
-    st.markdown(
-        """
-        <h1 style='color:#00ffcc;'>Fake News Detection</h1>
-        <h4>AI-powered system for detecting REAL vs FAKE news</h4>
-        <p style='color:#ccc;'>Built using NLP + Machine Learning (SVM)</p>
-        """,
-        unsafe_allow_html=True,
-    )
+    with col1:
+        st.markdown(
+            """
+            <h1 style='color:#00ffcc;'>Fake News Detection</h1>
+            <h4>AI-powered system for detecting REAL vs FAKE news</h4>
+            <p style='color:#ccc;'>Built using NLP + Machine Learning (SVM)</p>
+            """,
+            unsafe_allow_html=True,
+        )
 
-with col2:
-    st.markdown(
-        f'<img src="data:image/png;base64,{bg_image}" class="hero-img">',
-        unsafe_allow_html=True,
-    )
+    with col2:
+        st.markdown(
+            f'<img src="data:image/png;base64,{bg_image}" class="hero-img">',
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
 
@@ -154,69 +147,73 @@ with col2:
 
     with col1:
         if st.button("🧹 Clear"):
-            st.session_state.reset_input = True
             st.rerun()
 
     with col2:
         predict_clicked = st.button("🚀 Predict")
 
-    # ✅ FIX: move prediction HERE
-if predict_clicked:
+    # ===============================
+    # PREDICTION LOGIC (FIXED)
+    # ===============================
+    if predict_clicked:
 
-    if text.strip() == "":
-        st.warning("Enter text first")
+        if text.strip() == "":
+            st.warning("Enter text first")
 
-    else:
-        with st.spinner("Analyzing..."):
-            processed = preprocess(text)
+        else:
+            with st.spinner("Analyzing..."):
 
-            prediction = pipeline.predict([processed])[0]
+                processed = preprocess(text)
 
-            vectorized = pipeline.named_steps["vectorizer"].transform([processed])
-            raw_score = pipeline.named_steps["model"].decision_function(vectorized)[0]
+                prediction = pipeline.predict([processed])[0]
 
-            probability = 1 / (1 + np.exp(-raw_score))
-            percentage = int(probability * 100)
+                vectorized = pipeline.named_steps["vectorizer"].transform([processed])
+                raw_score = pipeline.named_steps["model"].decision_function(vectorized)[
+                    0
+                ]
 
-            score = raw_score
+                probability = 1 / (1 + np.exp(-raw_score))
+                percentage = int(probability * 100)
 
-            if prediction == 1:
-                result = "🟢 REAL NEWS"
-                display_percentage = percentage
-                st.success(result)
-                st.markdown(f"### 🟢 {display_percentage}% Confidence (Real)")
-            else:
-                result = "🔴 FAKE NEWS"
-                display_percentage = 100 - percentage
-                st.error(result)
-                st.markdown(f"### 🔴 {display_percentage}% Confidence (Fake)")
+                score = raw_score
 
-            # Progress bar
-            bar_color = "#00bfff" if prediction == 1 else "#ff4d4d"
+                if prediction == 1:
+                    result = "🟢 REAL NEWS"
+                    display_percentage = percentage
+                    st.success(result)
+                    st.markdown(f"### 🟢 {display_percentage}% Confidence (Real)")
+                else:
+                    result = "🔴 FAKE NEWS"
+                    display_percentage = 100 - percentage
+                    st.error(result)
+                    st.markdown(f"### 🔴 {display_percentage}% Confidence (Fake)")
 
-            st.markdown(
-                f"""
-                <div style='display:flex; justify-content:center; margin-top:10px;'>
-                    <div style='width:50%; background:#ffffff; border-radius:10px; overflow:hidden;'>
-                        <div style='width:{display_percentage}%; background:{bar_color}; padding:8px 0; text-align:center; color:black; font-weight:bold;'>
-                            {display_percentage}%
+                bar_color = "#00bfff" if prediction == 1 else "#ff4d4d"
+
+                st.markdown(
+                    f"""
+                    <div style='display:flex; justify-content:center; margin-top:10px;'>
+                        <div style='width:50%; background:#ffffff; border-radius:10px; overflow:hidden;'>
+                            <div style='width:{display_percentage}%; background:{bar_color}; padding:8px 0; text-align:center; color:black; font-weight:bold;'>
+                                {display_percentage}%
+                            </div>
                         </div>
                     </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-            st.write(f"Confidence Score: {score:.2f}")
+                st.write(f"Confidence Score: {score:.2f}")
 
-            st.session_state.history.append(
-                {
-                    "text": text[:200],
-                    "result": result,
-                    "score": score,
-                    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                }
-            )
+                st.session_state.history.append(
+                    {
+                        "text": text[:200],
+                        "result": result,
+                        "score": score,
+                        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                )
+
 # ===============================
 # HISTORY PAGE
 # ===============================
@@ -238,13 +235,13 @@ elif st.session_state.page == "history":
         for item in reversed(st.session_state.history):
             st.markdown(
                 f"""
-            <div class="history-box">
-                <b>Text:</b> {item['text']}<br>
-                <b>Result:</b> {item['result']}<br>
-                <b>Score:</b> {item['score']:.2f}<br>
-                <b>Time:</b> {item['time']}
-            </div>
-            """,
+                <div class="history-box">
+                    <b>Text:</b> {item['text']}<br>
+                    <b>Result:</b> {item['result']}<br>
+                    <b>Score:</b> {item['score']:.2f}<br>
+                    <b>Time:</b> {item['time']}
+                </div>
+                """,
                 unsafe_allow_html=True,
             )
 
@@ -252,58 +249,38 @@ elif st.session_state.page == "history":
 # ABOUT PAGE
 # ===============================
 elif st.session_state.page == "about":
+
     st.title("ℹ️ About This Project")
 
     st.markdown(
         """
 ### 🧠 Tigrigna Fake News Detection System
 
-This project is an AI-powered web application designed to classify news content as **REAL** or **FAKE** using Natural Language Processing and Machine Learning.
+This project is an AI-powered web application designed to classify news content as REAL or FAKE.
 
 ---
 
-### 🎯 Key Features
-- Real-time fake news detection
-- Supports Tigrigna language
-- Interactive and user-friendly interface
-- Confidence score visualization
-- Prediction history tracking
+### 🎯 Features
+- Real-time prediction
+- Tigrigna support
+- ML + NLP pipeline
+- History tracking
 
 ---
 
-### ⚙️ Technologies
-- **Machine Learning:** Support Vector Machine (SVM)
-- **Text Processing:** TF-IDF Vectorization
-- **Frontend:** Streamlit
-- **Backend Logic:** Python
-
----
-
-### 📊 Model Performance
-- Accuracy: **~96%**
-- Optimized using cross-validation
-- Balanced classification for real-world data
-
----
-
-### 🚀 Future Improvements
-- Full-stack upgrade (React + FastAPI)
-- Deep learning models (LSTM / Transformers)
-- API deployment
+### ⚙️ Tech Stack
+- SVM Model
+- TF-IDF Vectorizer
+- Streamlit UI
+- Python Backend
 
 ---
 
 ### 👨‍💻 Developer
-**Kiros Asefa**  
-Computer Science & Engineering Student  
-Mekelle University
-
----
-
-### 🔗 GitHub
-https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP
+Kiros Asefa
 """
     )
+
 # ===============================
 # FOOTER
 # ===============================
@@ -311,9 +288,7 @@ st.markdown(
     """
 <hr>
 <div style='text-align:center; color:gray; font-size:14px;'>
-    🚀 <b>Tigrigna Fake News Detection System</b><br>
-    Built with ❤️ using NLP & Machine Learning<br>
-    © 2026 Kiros Asefa
+🚀 Fake News Detection App | Built with Streamlit
 </div>
 """,
     unsafe_allow_html=True,
