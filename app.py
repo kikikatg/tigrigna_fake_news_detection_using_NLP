@@ -33,23 +33,12 @@ def load_pipeline():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     pipeline_path = os.path.join(BASE_DIR, "models", "pipeline.pkl")
 
-    st.write("Loading from:", pipeline_path)
-
     pipeline = joblib.load(pipeline_path)
 
     return pipeline
 
 
 pipeline = load_pipeline()
-
-st.write("Pipeline loaded ✔")
-
-st.write("Steps:", pipeline.named_steps)
-
-try:
-    st.write("Has IDF:", hasattr(pipeline.named_steps["vectorizer"], "idf_"))
-except Exception as e:
-    st.write("Error:", e)
 
 
 # ===============================
@@ -178,56 +167,63 @@ if st.session_state.page == "home":
     with col2:
         predict_clicked = st.button("🚀 Predict")
 
-    if predict_clicked:
+    import numpy as np
 
-        if text.strip() == "":
-            st.warning("Enter text first")
+if predict_clicked:
 
-        else:
-            with st.spinner("Analyzing..."):
-                time.sleep(1)
+    if text.strip() == "":
+        st.warning("Enter text first")
 
-                processed = preprocess(text)
+    else:
+        with st.spinner("Analyzing..."):
+            time.sleep(1)
 
-                # 🔥 FIX: use pipeline directly
-                prediction = pipeline.predict([processed])[0]
+            processed = preprocess(text)
 
-                if hasattr(pipeline.named_steps["model"], "decision_function"):
-                    score = pipeline.named_steps["model"].decision_function(
-                        pipeline.named_steps["vectorizer"].transform([processed])
-                    )[0]
-                else:
-                    score = pipeline.predict_proba([processed])[0][1]
+            # Prediction
+            prediction = pipeline.predict([processed])[0]
 
-                percentage = min(100, int((abs(score) / 3) * 100))
+            # Vectorize
+            vectorized = pipeline.named_steps["vectorizer"].transform([processed])
 
-                if prediction == 1:
-                    result = "🟢 REAL NEWS"
-                    st.success(result)
-                    st.markdown(f"### 🟢 {percentage}% Real News")
-                else:
-                    result = "🔴 FAKE NEWS"
-                    st.error(result)
-                    st.markdown(f"### 🔴 {percentage}% Fake News")
+            # Score
+            raw_score = pipeline.named_steps["model"].decision_function(vectorized)[0]
 
-            # BAR
+            # Convert to probability
+            probability = 1 / (1 + np.exp(-raw_score))
+            percentage = int(probability * 100)
+
+            score = raw_score
+
+            # Result display
+            if prediction == 1:
+                result = "🟢 REAL NEWS"
+                st.success(result)
+                st.markdown(f"### 🟢 {percentage}% Confidence (Real)")
+            else:
+                result = "🔴 FAKE NEWS"
+                st.error(result)
+                st.markdown(f"### 🔴 {100 - percentage}% Confidence (Fake)")
+
+            # Progress bar
             bar_color = "#00bfff" if prediction == 1 else "#ff4d4d"
 
             st.markdown(
                 f"""
-            <div style='display:flex; justify-content:center; margin-top:10px;'>
-                <div style='width:50%; background:#ffffff; border-radius:10px; overflow:hidden;'>
-                    <div style='width:{percentage}%; background:{bar_color}; padding:8px 0; text-align:center; color:black; font-weight:bold;'>
-                        {percentage}%
+                <div style='display:flex; justify-content:center; margin-top:10px;'>
+                    <div style='width:50%; background:#ffffff; border-radius:10px; overflow:hidden;'>
+                        <div style='width:{percentage}%; background:{bar_color}; padding:8px 0; text-align:center; color:black; font-weight:bold;'>
+                            {percentage}%
+                        </div>
                     </div>
                 </div>
-            </div>
-            """,
+                """,
                 unsafe_allow_html=True,
             )
 
             st.write(f"Confidence Score: {score:.2f}")
 
+            # Save history
             st.session_state.history.append(
                 {
                     "text": text[:200],
@@ -236,7 +232,6 @@ if st.session_state.page == "home":
                     "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 }
             )
-
 # ===============================
 # HISTORY PAGE
 # ===============================
@@ -271,20 +266,68 @@ elif st.session_state.page == "history":
 # ===============================
 # ABOUT PAGE
 # ===============================
-elif st.session_state.page == "about":
-    st.title("ℹ️ About This Project")
-    st.markdown(
-        """ ## 📌 Project Overview The **Tigrigna Fake News Detection System** is an AI-powered web application designed to automatically classify news content as **REAL** or **FAKE** using Natural Language Processing (NLP) and Machine Learning. This system focuses on **low-resource languages like Tigrigna**, where misinformation detection tools are very limited. --- ## 🎯 Objectives - Detect fake news in Tigrigna language - Provide real-time classification - Reduce misinformation spread - Build an intelligent NLP-based system --- ## 🧠 Technologies Used ### 🔹 NLP Techniques - Text preprocessing (cleaning, normalization) - Tokenization - Stopword removal (custom Tigrigna stopwords) ### 🔹 Feature Extraction - TF-IDF Vectorization ### 🔹 Machine Learning # - Naive Bayes - Logistic Regression - Support Vector Machine (Final Model) --- ## 📊 Model Performance - Accuracy: ~96% - High precision and recall - Strong generalization --- ## ⚙️ System Features - Text input and analysis - Real-time prediction - Confidence visualization - Prediction history - Interactive UI --- ## 🏗️ Architecture - Streamlit UI - ML Model (SVM) - Preprocessing pipeline --- ## 🚀 Future Improvements - Convert to full-stack (React + FastAPI) - Add deep learning (LSTM / Transformers) - Expand dataset - API integration --- ## 💡 Impact This project demonstrates how AI can be applied to: - Fight misinformation - Support local languages - Build real-world intelligent systems --- ## 🔗 GitHub 👉 https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP """
-    )
+st.title("ℹ️ About This Project")
 
+st.markdown(
+    """
+### 🧠 Tigrigna Fake News Detection System
+
+This project is an AI-powered web application designed to classify news content as **REAL** or **FAKE** using Natural Language Processing and Machine Learning.
+
+---
+
+### 🎯 Key Features
+- Real-time fake news detection
+- Supports Tigrigna language
+- Interactive and user-friendly interface
+- Confidence score visualization
+- Prediction history tracking
+
+---
+
+### ⚙️ Technologies
+- **Machine Learning:** Support Vector Machine (SVM)
+- **Text Processing:** TF-IDF Vectorization
+- **Frontend:** Streamlit
+- **Backend Logic:** Python
+
+---
+
+### 📊 Model Performance
+- Accuracy: **~96%**
+- Optimized using cross-validation
+- Balanced classification for real-world data
+
+---
+
+### 🚀 Future Improvements
+- Full-stack upgrade (React + FastAPI)
+- Deep learning models (LSTM / Transformers)
+- API deployment
+
+---
+
+### 👨‍💻 Developer
+**Kiros Asefa**  
+Computer Science & Engineering Student  
+Mekelle University
+
+---
+
+### 🔗 GitHub
+https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP
+"""
+)
 # ===============================
 # FOOTER
 # ===============================
-st.markdown("---")
 st.markdown(
     """
-<div style='text-align:center; color:gray;'>
-🚀 Fake News Detection System
+<hr>
+<div style='text-align:center; color:gray; font-size:14px;'>
+    🚀 <b>Tigrigna Fake News Detection System</b><br>
+    Built with ❤️ using NLP & Machine Learning<br>
+    © 2026 Kiros Asefa
 </div>
 """,
     unsafe_allow_html=True,
