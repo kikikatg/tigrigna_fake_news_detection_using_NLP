@@ -261,7 +261,7 @@ This system detects whether a news article is REAL or FAKE using Machine Learnin
 
 ---
 
-### 👨‍💻 Developer
-Kiros Asefa
+### 👨‍💻 Developers
+CSE Project teams
 """
     )
