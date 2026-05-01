@@ -1,7 +1,8 @@
 import re
+import numpy as np
 
 # ===============================
-# STOPWORDS (UNCHANGED)
+# STOPWORDS (CLEAN + STABLE)
 # ===============================
 stopwords = set(
     [
@@ -12,11 +13,6 @@ stopwords = set(
         "ንሳ",
         "ንሕና",
         "ንሳቶም",
-        "ንኣይ",
-        "ንእሱ",
-        "ንእሳ",
-        "ንእኛ",
-        "ንእኦም",
         "እዚ",
         "እቲ",
         "እታ",
@@ -27,124 +23,86 @@ stopwords = set(
         "እና",
         "ወይ",
         "ግን",
-        "ምኽንያቱ",
         "ስለዚ",
         "እኳ",
         "እንተ",
-        "እንከ",
         "እውን",
-        "ደጊም",
         "ኣብ",
         "ናብ",
         "ካብ",
         "ምስ",
-        "ብዘይ",
-        "ብዛዕባ",
+        "ብ",
         "ን",
         "ናይ",
-        "ብ",
-        "ላዕሊ",
-        "ታሕቲ",
         "እዩ",
         "እየ",
         "እዮም",
-        "ነበረ",
-        "ነበሩ",
-        "ክኸውን",
-        "ኣለኒ",
-        "ኣለዎ",
-        "ኣለዋ",
         "ኣሎ",
-        "ኣሎም",
-        "ግበር",
-        "ይገብር",
-        "ገበረ",
-        "ክኽእል",
-        "ክ",
-        "ምናልባት",
-        "ኣይ",
         "የለን",
-        "ከቶ",
-        "ምንም",
-        "ዋላ",
-        "ኣይኮነን",
-        "ኩሉ",
-        "ብዙሕ",
-        "ሓደ",
-        "ገለ",
-        "ዝኾነ",
-        "ነፍሲ",
-        "ወከፍ",
-        "ዝያዳ",
-        "ንእሽቶ",
         "ሕጂ",
-        "ከዚ",
         "ቅድሚ",
         "ድሕሪ",
-        "ግዜ",
-        "ስለምንታይ",
-        "ከመይ",
-        "እንታይ",
-        "መን",
-        "ኣበይ",
-        "ከም",
-        "ከምዚ",
-        "ከምኡ",
-        "ስለ",
-        "ስለዚ",
-        "ዝ",
-        "ዝኾነ",
-        "እንተ",
-        "እንተኾነ",
-        "ኣሎ",
-        "የለን",
+        "ኩሉ",
         "ሓደ",
-        "ብዙሕ",
+        "ገለ",
+        "መን",
+        "እንታይ",
+        "ኣበይ",
     ]
 )
 
+# ===============================
+# SAFETY CONSTANTS
+# ===============================
+MIN_TOKEN_LENGTH = 2
+MAX_TEXT_LENGTH = 5000
+
 
 # ===============================
-# CLEAN TEXT
+# TEXT CLEANING (ROBUST)
 # ===============================
 def clean_text(text):
+    if text is None:
+        return ""
+
     text = str(text)
 
+    # limit extremely long inputs (prevents abuse / crashes)
+    text = text[:MAX_TEXT_LENGTH]
+
+    # remove URLs
     text = re.sub(r"https?://\S+|www\.\S+", "", text)
+
+    # remove emails
     text = re.sub(r"\S+@\S+", "", text)
-    text = re.sub(r"[።፣፤፥፦፧፨]", "", text)
-    text = re.sub(r'[.,;:!?()\[\]{}"\'`~@#$%^&*+=|\\/<>_-]', "", text)
+
+    # remove numbers (both latin + geez numerals)
     text = re.sub(r"[0-9\u1369-\u137C]", "", text)
-    text = re.sub(r"[^\w\s\u1200-\u137F]", "", text)
+
+    # keep only Tigrigna + spaces
+    text = re.sub(r"[^\u1200-\u137F\s]", " ", text)
+
+    # normalize spaces
     text = re.sub(r"\s+", " ", text)
 
     return text.strip()
 
 
 # ===============================
-# NORMALIZE TIGRIGNA
+# NORMALIZATION (SAFE VERSION)
 # ===============================
 def normalize_tigrigna(text):
+    if not text:
+        return ""
+
     replacements = {
         "አ": "ኣ",
         "ዐ": "ኣ",
         "ሐ": "ሀ",
         "ኀ": "ሀ",
         "ሓ": "ሀ",
-        "ሰ": "ሠ",
         "ሸ": "ሠ",
         "ጸ": "ፀ",
-        "ከ": "ካ",
-        "ኸ": "ካ",
-        "ዘ": "ዠ",
-        "ደ": "ዳ",
-        "ገ": "ጋ",
-        "በ": "ባ",
-        "ፐ": "ፓ",
-        "ኡ": "ኢ",
-        "ኤ": "ኢ",
-        "እ": "ኢ",
-        "ኦ": "ኢ",
         "፡": " ",
     }
 
@@ -155,25 +113,73 @@ def normalize_tigrigna(text):
 
 
 # ===============================
-# TOKENIZATION
+# TOKENIZATION (STRICT + CLEAN)
 # ===============================
 def tokenize(text):
-    return re.findall(r"[A-Za-z]+|[ሀ-፿]+", text)
+    if not text:
+        return []
+
+    # ONLY Tigrigna tokens (no English leakage)
+    tokens = re.findall(r"[ሀ-፿]+", text)
+
+    return tokens
 
 
 # ===============================
-# REMOVE STOPWORDS
+# TOKEN CLEANING
 # ===============================
 def clean_tokens(tokens):
-    return [word for word in tokens if word not in stopwords]
+    if not tokens:
+        return []
+
+    cleaned = []
+    for t in tokens:
+        if t not in stopwords and len(t) >= MIN_TOKEN_LENGTH:
+            cleaned.append(t)
+
+    return cleaned
 
 
 # ===============================
-# FINAL PREPROCESS FUNCTION
+# MAIN PREPROCESS PIPELINE
 # ===============================
-def preprocess(text):
+def preprocess(text, return_tokens=False):
+    """
+    Production-safe preprocessing function.
+    MUST behave same in training and inference.
+    """
+
     text = clean_text(text)
     text = normalize_tigrigna(text)
+
     tokens = tokenize(text)
     tokens = clean_tokens(tokens)
+
+    # safety fallback (VERY IMPORTANT for deployment)
+    if len(tokens) == 0:
+        return [] if return_tokens else ""
+
+    if return_tokens:
+        return tokens
+
     return " ".join(tokens)
+
+
+# ===============================
+# DEBUG FUNCTION (OPTIONAL)
+# ===============================
+def debug_preprocess(text):
+    print("RAW:", text)
+    cleaned = clean_text(text)
+    print("CLEAN:", cleaned)
+
+    normalized = normalize_tigrigna(cleaned)
+    print("NORMALIZED:", normalized)
+
+    tokens = tokenize(normalized)
+    print("TOKENS:", tokens)
+
+    final = clean_tokens(tokens)
+    print("FINAL:", final)
+
+    return final
