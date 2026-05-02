@@ -1,3 +1,5 @@
+import { predictNews } from "../services/api";
+
 export default function InputBox({
   newsText,
   setNewsText,
@@ -14,19 +16,18 @@ export default function InputBox({
     setResult(null);
 
     try {
-      // TEMP MOCK (we will replace with real API later)
-      setTimeout(() => {
-        const fakeResult = {
-          label: "FAKE",
-          confidence: 48.94,
-        };
+      const data = await predictNews(newsText);
 
-        setResult(fakeResult);
-        setLoading(false);
-      }, 1000);
+      setResult({
+        label: data.label,
+        confidence: data.confidence,
+        risk_level: data.risk_level,
+      });
 
     } catch (error) {
       console.error(error);
+      alert("Backend error. Check FastAPI.");
+    } finally {
       setLoading(false);
     }
   };

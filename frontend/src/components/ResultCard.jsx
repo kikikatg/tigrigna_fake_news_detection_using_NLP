@@ -1,3 +1,4 @@
+
 export default function ResultCard({ result, loading }) {
   if (loading) {
     return (
@@ -15,12 +16,12 @@ export default function ResultCard({ result, loading }) {
     );
   }
 
-  const { label, confidence } = result;
+  const { label, confidence, risk_level } = result;
 
   const isReal = label === "REAL";
 
   return (
-    <div className="text-center">
+    <div className="text-center bg-gray-900 p-6 rounded-xl mt-6">
       <h2
         className={`text-3xl font-bold ${
           isReal ? "text-green-400" : "text-red-400"
@@ -29,7 +30,11 @@ export default function ResultCard({ result, loading }) {
         {label}
       </h2>
 
-      <div className="w-full bg-gray-300 rounded-full h-4 mt-4 overflow-hidden">
+      <p className="mt-2 text-sm text-gray-300">
+        Risk Level: {risk_level}
+      </p>
+
+      <div className="w-full bg-gray-700 rounded-full h-4 mt-4 overflow-hidden">
         <div
           className={`h-4 rounded-full ${
             isReal ? "bg-green-500" : "bg-red-500"
@@ -39,8 +44,9 @@ export default function ResultCard({ result, loading }) {
       </div>
 
       <p className="mt-3">
-        The news is {confidence}% {isReal ? "real" : "fake"}
+        Confidence: {confidence.toFixed(2)}%
       </p>
     </div>
   );
 }
+

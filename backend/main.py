@@ -1,66 +1,53 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import joblib
-import numpy as np
-import os
 
-# =========================
-# LOAD MODEL
-# =========================
-MODEL_PATH = os.path.join("..", "models", "pipeline.pkl")
-model = joblib.load(MODEL_PATH)
+from backend.schemas.news_schema import NewsRequest
+from backend.services.predictor import predict_news
 
-# =========================
-# APP INIT
-# =========================
-app = FastAPI()
+app = FastAPI(
+    title="Tigrigna Fake News Detection API",
+    version="2.0.0",
+)
 
-# =========================
-# CORS (React connection)
-# =========================
+# =========================================
+# CORS
+# =========================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React Vite default
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# =========================
-# REQUEST FORMAT
-# =========================
-class NewsRequest(BaseModel):
-    text: str
-
-
-# =========================
-# PREDICT ENDPOINT
-# =========================
-@app.post("/predict")
-def predict_news(request: NewsRequest):
-    text = request.text
-
-    # prediction
-    pred = model.predict([text])[0]
-
-    # confidence (SVM decision function)
-    try:
-        score = model.decision_function([text])[0]
-        confidence = float(1 / (1 + np.exp(-score))) * 100
-    except:
-        confidence = 50.0
-
-    return {
-        "label": "REAL" if pred == 1 else "FAKE",
-        "confidence": round(confidence, 2),
-    }
-
-
-# =========================
-# HEALTH CHECK
-# =========================
+# =========================================
+# ROOT
+# =========================================
 @app.get("/")
-def home():
-    return {"message": "Fake News API is running"}
+def root():
+    return {"message": "API Running"}
+
+
+# =========================================
+# HEALTH
+# =========================================
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+# =========================================
+# PREDICT
+# =========================================
+@app.post("/predict")
+def predict(request: NewsRequest):
+
+    try:
+        return predict_news(request.text)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
