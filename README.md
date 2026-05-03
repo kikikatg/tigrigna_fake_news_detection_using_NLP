@@ -2,168 +2,125 @@
 
 ## 📌 Project Overview
 
-The **Tigrigna Fake News Detection System** is an AI-powered web application developed to automatically classify news content as **REAL** or **FAKE** using **Natural Language Processing (NLP)** and **Machine Learning**.
+The **Tigrigna Fake News Detection System** is an AI-powered full-stack web application developed to automatically classify Tigrigna news content as **REAL** or **FAKE** using **Natural Language Processing (NLP)** and **Machine Learning**.
 
-This project was built as a **final-year Computer Science and Engineering team project** to address the growing problem of misinformation, especially in **low-resource languages like Tigrigna**.
+The system was developed as a **final-year Computer Science and Engineering team project** to help combat the increasing spread of misinformation in low-resource languages such as **Tigrigna**.
 
----
-
-## 🎯 Objectives
-
-- Detect fake news in Tigrigna language
-- Build an intelligent automated classification system
-- Reduce misinformation spread
-- Provide an easy-to-use web interface for users
+The application uses:
+- ⚛️ **React + Vite** for the frontend
+- ⚡ **FastAPI** for the backend API
+- 🧠 **Machine Learning (SVM)** for prediction
+- 🗄️ **SQLite + SQLAlchemy** for prediction history storage
+- ☁️ **Vercel + Render** for deployment
 
 ---
 
-## 🚀 Features
+# 🎯 Objectives
 
-- 📰 Real-time news prediction
+- Detect fake news written in Tigrigna language
+- Build an intelligent automated fake news classification system
+- Reduce misinformation spread through AI-based analysis
+- Provide a fast, responsive, and user-friendly web application
+- Store and manage prediction history
+
+---
+
+# 🚀 Features
+
+- 📰 Real-time fake news prediction
 - 🤖 Machine Learning classification (REAL / FAKE)
 - 📊 Confidence score display
+- ⚠️ Risk level analysis
+- 🧾 Source pattern identification
 - 🕒 Prediction history with timestamps
-- 🎨 Modern and interactive UI (Streamlit)
-- 🧹 Clear input functionality
+- 🗑️ Clear history functionality
+- 🎨 Modern responsive React UI
+- ⚡ FastAPI backend API integration
+- ☁️ Full-stack cloud deployment
+- 🔒 CORS-enabled secure API communication
 
 ---
 
-## 🧠 Technologies Used
+# 🧠 Technologies Used
 
-### 🔹 Natural Language Processing (NLP)
+## 🔹 Frontend
 
-- Text cleaning and normalization
+- React.js
+- Vite
+- Axios
+- CSS / Responsive UI
+
+## 🔹 Backend
+
+- FastAPI
+- Uvicorn
+- SQLAlchemy
+- Pydantic
+- SQLite
+
+## 🔹 Machine Learning & NLP
+
+- Scikit-learn
+- Pandas
+- NumPy
+- Joblib
+
+### NLP Techniques
+
+- Text cleaning
+- Normalization
 - Tokenization
 - Stopword removal
 
-### 🔹 Feature Extraction
+### Feature Extraction
 
-- **TF-IDF (Term Frequency – Inverse Document Frequency)**
+- **TF-IDF Vectorization**
 
-### 🔹 Machine Learning Models
+### Machine Learning Models Tested
 
 - Naive Bayes
 - Logistic Regression
 - **Support Vector Machine (SVM) – Final Model**
 
-✔ The SVM model was selected due to its **high accuracy and strong performance**.
+✅ The SVM model was selected due to its strong accuracy and overall performance.
 
 ---
 
-## 📊 Model Performance
+# 📊 Model Performance
 
-- ✅ Accuracy: ~96%
-- 📈 Evaluation Metrics:
-  - Precision
-  - Recall
-  - F1-score
-  - Confusion Matrix
+| Metric | Score |
+|--------|--------|
+| Accuracy | ~96% |
+| Precision | High |
+| Recall | High |
+| F1-Score | High |
 
-- 🔁 Cross-validation used for model reliability
+### Evaluation Methods
+
+- Confusion Matrix
+- Cross-validation
+- Classification report
 
 ---
 
-## 💻 System Architecture
+# 🏗️ System Architecture
 
-```
-User Input (Text)
-        ↓
-Preprocessing (NLP)
-        ↓
+```text
+Frontend (React + Vite)
+            ↓
+Axios API Requests
+            ↓
+FastAPI Backend
+            ↓
+NLP Preprocessing
+            ↓
 TF-IDF Vectorization
-        ↓
+            ↓
 SVM Model Prediction
-        ↓
-Output (REAL / FAKE + Score)
-```
-
----
-
-## 🖥️ User Interface
-
-The system is built using **Streamlit**, providing:
-
-- Interactive UI
-- Fast predictions
-- Simple deployment
-
----
-
-## 📂 Project Structure
-
-```
-Final_Project/
-│── app.py
-│── models/
-│   ├── svm_model.pkl
-│   ├── vectorizer.pkl
-│
-│── utils/
-│   └── preprocessing.py
-│
-│── assets/
-│   └── ui-background.png
-│
-│── requirements.txt
-│── README.md
-```
-
----
-
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone Repository
-
-```bash
-git clone https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP.git
-cd tigrigna_fake_news_detection_using_NLP
-```
-
-### 2️⃣ Create Virtual Environment
-
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
-### 3️⃣ Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4️⃣ Run the App
-
-```bash
-streamlit run app.py
-```
-
----
-
-## 🌐 Deployment
-
-The application can be deployed using:
-
-- Streamlit Cloud
-- Render / Railway
-- Future: React + FastAPI
-
----
-
-## 🔮 Future Improvements
-
-- 🌍 Multi-language support
-- 🧠 Deep Learning models (LSTM, Transformers)
-- ☁️ Full-stack deployment (React + FastAPI)
-- 📱 Mobile-friendly UI
-
----
-
-## 👨‍💻 Team Contribution
-
-This project was developed collaboratively as part of a final-year academic project.
-
----
+            ↓
+Prediction Result + Confidence
+            ↓
+Database Storage (SQLite)
 
 ## 🔗 GitHub Repository
 
@@ -171,12 +128,16 @@ This project was developed collaboratively as part of a final-year academic proj
 
 ---
 
-## 📌 Conclusion
+# 🌐 Live Application Links
 
-This project demonstrates how **AI and NLP** can be used to solve real-world problems like fake news detection, especially in underrepresented languages. It provides a strong foundation for further research and real-world deployment.
+## 🔹 Frontend Application (Vercel)
+
+👉 https://tigrigna-fake-news-detection-using.vercel.app/
 
 ---
 
-## ⭐ Support
+## 🔹 Backend API (Render)
 
-If you found this project useful, consider giving it a ⭐ on GitHub!
+👉 https://tigrigna-fake-news-detection-using-nlp-1.onrender.com
+
+---
