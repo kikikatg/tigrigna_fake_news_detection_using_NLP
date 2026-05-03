@@ -1,22 +1,15 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy.orm import Session
-
-from backend.schemas.news_schema import NewsRequest
-from backend.services.predictor import predict_news
-
-from backend.db.database import (
-    SessionLocal,
-    engine,
-    Base,
-)
-
-from backend.db.crud import (
-    save_prediction,
-    get_history,
-    clear_history,
-)
+from schemas.news_schema import NewsRequest
+from services.predictor import predict_news
+from db.database import SessionLocal, engine, Base
+from db.crud import save_prediction, get_history, clear_history
 
 # =========================================
 # CREATE DATABASE TABLES
