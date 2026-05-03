@@ -1,12 +1,34 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+
+from sqlalchemy.orm import Session
 
 from backend.schemas.news_schema import NewsRequest
 from backend.services.predictor import predict_news
 
+from backend.db.database import (
+    SessionLocal,
+    engine,
+    Base,
+)
+
+from backend.db.crud import (
+    save_prediction,
+    get_history,
+    clear_history,
+)
+
+# =========================================
+# CREATE DATABASE TABLES
+# =========================================
+Base.metadata.create_all(bind=engine)
+
+# =========================================
+# FASTAPI
+# =========================================
 app = FastAPI(
     title="Tigrigna Fake News Detection API",
-    version="2.0.0",
+    version="3.0.0",
 )
 
 # =========================================
@@ -25,11 +47,29 @@ app.add_middleware(
 
 
 # =========================================
+# DATABASE SESSION
+# =========================================
+def get_db():
+
+    db = SessionLocal()
+
+    try:
+        yield db
+
+    finally:
+        db.close()
+
+
+# =========================================
 # ROOT
 # =========================================
 @app.get("/")
 def root():
-    return {"message": "API Running"}
+
+    return {
+        "message": "API Running",
+        "status": "healthy",
+    }
 
 
 # =========================================
@@ -37,17 +77,73 @@ def root():
 # =========================================
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+
+    return {
+        "status": "ok",
+    }
 
 
 # =========================================
 # PREDICT
 # =========================================
 @app.post("/predict")
-def predict(request: NewsRequest):
+def predict(
+    request: NewsRequest,
+    db: Session = Depends(get_db),
+):
 
     try:
-        return predict_news(request.text)
+
+        result = predict_news(request.text)
+
+        # =================================
+        # SAVE TO DATABASE
+        # =================================
+        save_prediction(
+            db=db,
+            text=request.text,
+            label=result["label"],
+            confidence=result["confidence"],
+            risk_level=result["risk_level"],
+            source_pattern=result["source_pattern"],
+        )
+
+        return result
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
+
+
+# =========================================
+# HISTORY
+# =========================================
+@app.get("/history")
+def history(
+    db: Session = Depends(get_db),
+):
+
+    return get_history(db)
+
+
+# =========================================
+# CLEAR HISTORY
+# =========================================
+@app.delete("/history")
+def delete_history(
+    db: Session = Depends(get_db),
+):
+
+    clear_history(db)
+
+    return {"message": "History cleared successfully"}

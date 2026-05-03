@@ -1,56 +1,108 @@
-import { predictNews } from "../services/api";
+import { useState } from "react";
 
-export default function InputBox({
+function InputBox({
   newsText,
   setNewsText,
   setResult,
   setLoading,
 }) {
+  const [error, setError] = useState("");
+
   const handlePredict = async () => {
+    setError("");
+
+    // VALIDATION
     if (!newsText.trim()) {
-      alert("Please enter some news text");
+      setError("Please enter news text.");
       return;
     }
 
-    setLoading(true);
-    setResult(null);
-
     try {
-      const data = await predictNews(newsText);
+      setLoading(true);
 
-      setResult({
-        label: data.label,
-        confidence: data.confidence,
-        risk_level: data.risk_level,
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/predict",
+        {
+          method: "POST",
 
-    } catch (error) {
-      console.error(error);
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            text: newsText,
+          }),
+        }
+      );
+
+      // HANDLE BACKEND ERROR
+      if (!response.ok) {
+        const err = await response.json();
+
+        throw new Error(
+          err.detail || "Prediction failed"
+        );
+      }
+
+      const data = await response.json();
+
+      setResult(data);
+
+    } catch (err) {
+      console.error(err);
+
       alert("Backend error. Check FastAPI.");
+
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClear = () => {
+    setNewsText("");
+    setResult(null);
+    setError("");
+  };
+
   return (
-    <div className="text-center">
-      <h2 className="text-3xl font-bold mb-6">
-        Check if news is real or fake!
+    <div className="bg-[#111827] p-6 rounded-2xl border border-gray-700 shadow-xl">
+
+      <h2 className="text-2xl font-bold mb-4">
+        Analyze Tigrigna News
       </h2>
 
       <textarea
         value={newsText}
         onChange={(e) => setNewsText(e.target.value)}
-        placeholder="Enter the news here..."
-        className="w-full h-40 p-4 rounded-xl text-black outline-none"
+        placeholder="Paste Tigrigna news article here..."
+        className="w-full h-56 bg-[#0f172a] border border-gray-700 rounded-xl p-4 text-white outline-none focus:border-cyan-400 resize-none"
       />
 
-      <button
-        onClick={handlePredict}
-        className="mt-5 bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-full font-bold"
-      >
-        Predict
-      </button>
+      {error && (
+        <p className="text-red-400 mt-3">
+          {error}
+        </p>
+      )}
+
+      <div className="flex justify-between mt-5">
+
+        <button
+          onClick={handleClear}
+          className="bg-red-500 hover:bg-red-600 px-6 py-3 rounded-xl font-semibold transition"
+        >
+          Clear
+        </button>
+
+        <button
+          onClick={handlePredict}
+          className="bg-cyan-400 hover:bg-cyan-500 text-black px-6 py-3 rounded-xl font-bold transition"
+        >
+          Predict
+        </button>
+
+      </div>
     </div>
   );
 }
+
+export default InputBox;

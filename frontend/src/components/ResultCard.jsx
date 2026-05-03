@@ -1,52 +1,64 @@
+function ResultCard({ result }) {
 
-export default function ResultCard({ result, loading }) {
-  if (loading) {
-    return (
-      <div className="text-center">
-        <p className="text-lg animate-pulse">Analyzing...</p>
-      </div>
-    );
-  }
+  if (!result) return null;
 
-  if (!result) {
-    return (
-      <div className="text-center text-gray-400">
-        <p>No prediction yet</p>
-      </div>
-    );
-  }
-
-  const { label, confidence, risk_level } = result;
-
-  const isReal = label === "REAL";
+  const isReal = result.label === "REAL";
 
   return (
-    <div className="text-center bg-gray-900 p-6 rounded-xl mt-6">
-      <h2
-        className={`text-3xl font-bold ${
-          isReal ? "text-green-400" : "text-red-400"
-        }`}
-      >
-        {label}
+
+    <div className="bg-[#1f2937] border border-gray-700 rounded-3xl p-8 shadow-2xl">
+
+      {/* HEADER */}
+      <h2 className="text-3xl font-bold text-white mb-8">
+        Prediction Result
       </h2>
 
-      <p className="mt-2 text-sm text-gray-300">
-        Risk Level: {risk_level}
-      </p>
+      {/* RESULT */}
+      <div className="flex flex-col items-center justify-center">
 
-      <div className="w-full bg-gray-700 rounded-full h-4 mt-4 overflow-hidden">
         <div
-          className={`h-4 rounded-full ${
-            isReal ? "bg-green-500" : "bg-red-500"
+          className={`text-5xl font-extrabold mb-6 ${
+            isReal
+              ? "text-green-400"
+              : "text-red-400"
           }`}
-          style={{ width: `${confidence}%` }}
-        />
+        >
+
+          {isReal ? "🟢 REAL NEWS" : "🔴 FAKE NEWS"}
+
+        </div>
+
+        {/* CONFIDENCE TEXT */}
+        <p className="text-xl text-gray-300 mb-4">
+
+          Confidence:{" "}
+
+          <span className="font-bold text-white">
+            {result.confidence}%
+          </span>
+
+        </p>
+
+        {/* PROGRESS BAR */}
+        <div className="w-full max-w-xl h-5 bg-gray-700 rounded-full overflow-hidden">
+
+          <div
+            className={`h-full transition-all duration-700 ${
+              isReal
+                ? "bg-green-400"
+                : "bg-red-400"
+            }`}
+            style={{
+              width: `${result.confidence}%`,
+            }}
+          />
+
+        </div>
+
       </div>
 
-      <p className="mt-3">
-        Confidence: {confidence.toFixed(2)}%
-      </p>
     </div>
   );
 }
 
+export default ResultCard;
