@@ -23,6 +23,13 @@ app = FastAPI(
     title="Tigrigna Fake News Detection API",
     version="3.0.0",
 )
+from fastapi.responses import Response
+
+
+@app.options("/{full_path:path}")
+def preflight_handler(full_path: str):
+    return Response(status_code=200)
+
 
 # =========================================
 # CORS
@@ -32,11 +39,13 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://tigrigna-fake-news-detection-using.vercel.app",
         "https://tigrigna-fake-news-detection-using-ahm0ms0r2-kikikatgs-projects.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 
