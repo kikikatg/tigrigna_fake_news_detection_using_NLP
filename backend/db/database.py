@@ -5,7 +5,12 @@ from sqlalchemy.orm import sessionmaker
 # =========================================
 # DATABASE URL
 # =========================================
-DATABASE_URL = "sqlite:///./fake_news.db"
+import os
+
+# Get project root (Final_Project)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'fake_news.db')}"
 
 # =========================================
 # ENGINE

@@ -2,12 +2,16 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 from sqlalchemy.orm import Session
+
 from schemas.news_schema import NewsRequest
 from services.predictor import predict_news
+
 from db.database import SessionLocal, engine, Base
 from db.crud import save_prediction, get_history, clear_history
 
@@ -17,22 +21,15 @@ from db.crud import save_prediction, get_history, clear_history
 Base.metadata.create_all(bind=engine)
 
 # =========================================
-# FASTAPI
+# FASTAPI APP
 # =========================================
 app = FastAPI(
     title="Tigrigna Fake News Detection API",
-    version="3.0.0",
+    version="3.1.0",
 )
-from fastapi.responses import Response
-
-
-@app.options("/{full_path:path}")
-def preflight_handler(full_path: str):
-    return Response(status_code=200)
-
 
 # =========================================
-# CORS
+# CORS CONFIG
 # =========================================
 app.add_middleware(
     CORSMiddleware,
@@ -45,20 +42,24 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
 )
+
+
+# =========================================
+# PRE-FLIGHT (CORS FIX)
+# =========================================
+@app.options("/{full_path:path}")
+def preflight_handler(full_path: str):
+    return Response(status_code=200)
 
 
 # =========================================
 # DATABASE SESSION
 # =========================================
 def get_db():
-
     db = SessionLocal()
-
     try:
         yield db
-
     finally:
         db.close()
 
@@ -68,7 +69,6 @@ def get_db():
 # =========================================
 @app.get("/")
 def root():
-
     return {
         "message": "API Running",
         "status": "healthy",
@@ -76,32 +76,23 @@ def root():
 
 
 # =========================================
-# HEALTH
+# HEALTH CHECK
 # =========================================
 @app.get("/health")
 def health():
-
-    return {
-        "status": "ok",
-    }
+    return {"status": "ok"}
 
 
 # =========================================
-# PREDICT
+# PREDICT ENDPOINT
 # =========================================
 @app.post("/predict")
-def predict(
-    request: NewsRequest,
-    db: Session = Depends(get_db),
-):
+def predict(request: NewsRequest, db: Session = Depends(get_db)):
 
     try:
-
         result = predict_news(request.text)
 
-        # =================================
-        # SAVE TO DATABASE
-        # =================================
+        # SAVE TO DB
         save_prediction(
             db=db,
             text=request.text,
@@ -114,39 +105,61 @@ def predict(
         return result
 
     except ValueError as e:
-
-        raise HTTPException(
-            status_code=400,
-            detail=str(e),
-        )
+        raise HTTPException(status_code=400, detail=str(e))
 
     except Exception as e:
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e),
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =========================================
-# HISTORY
+# HISTORY (FIXED + SAFE)
 # =========================================
 @app.get("/history")
-def history(
-    db: Session = Depends(get_db),
-):
+def history(db: Session = Depends(get_db), limit: int = 10):
 
-    return get_history(db)
+    try:
+        data = get_history(db)
+
+        # LIMIT RESULTS
+        data = data[:limit]
+
+        # CLEAN RESPONSE FORMAT
+        return {
+            "count": len(data),
+            "results": [
+                {
+                    "id": item.id,
+                    "text": (
+                        item.text[:100] + "..." if len(item.text) > 100 else item.text
+                    ),
+                    "label": item.label,
+                    "confidence": round(item.confidence, 2),
+                    "risk_level": item.risk_level,
+                    "created_at": item.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                for item in data
+            ],
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =========================================
 # CLEAR HISTORY
 # =========================================
 @app.delete("/history")
-def delete_history(
-    db: Session = Depends(get_db),
-):
+def delete_history(db: Session = Depends(get_db)):
 
-    clear_history(db)
+    try:
+        clear_history(db)
+        return {
+            "message": "History cleared successfully",
+            "status": "success",
+        }
 
-    return {"message": "History cleared successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to clear history: {str(e)}",
+        )
