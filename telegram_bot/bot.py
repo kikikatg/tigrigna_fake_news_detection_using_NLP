@@ -13,7 +13,9 @@ import requests
 # ==========================================
 # CONFIG
 # ==========================================
-BOT_TOKEN = "8634075427:AAGxRJei1wXBKmbpGtwuXU3TyzrKu-N5V3U"
+import os
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_URL = "https://tigrigna-fake-news-detection-using-nlp-1.onrender.com/predict"
 
 
@@ -161,6 +163,9 @@ async def predict_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ==========================================
 # BUTTON HANDLER
 # ==========================================
+# ==========================================
+# BUTTON HANDLER
+# ==========================================
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
@@ -168,52 +173,110 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     data = query.data
 
+    # ==========================================
+    # HELP
+    # ==========================================
     if data == "help":
 
-        await query.edit_message_text(get_help_text(), reply_markup=main_keyboard())
+        await query.edit_message_text(
+            get_help_text(),
+            reply_markup=main_keyboard(),
+        )
 
+    # ==========================================
+    # HISTORY
+    # ==========================================
     elif data == "history":
 
         try:
-            res = requests.get(
-                "https://tigrigna-fake-news-detection-using-nlp-1.onrender.com/history"
-            )
-            history = res.json()
 
+            res = requests.get(
+                "https://tigrigna-fake-news-detection-using-nlp-1.onrender.com/history",
+                timeout=30,
+            )
+
+            # CHECK STATUS
+            if res.status_code != 200:
+                raise Exception("Backend API failed")
+
+            # JSON RESPONSE
+            data_json = res.json()
+
+            # GET RESULTS
+            history = data_json.get("results", [])
+
+            # EMPTY HISTORY
+            if not history:
+
+                await query.edit_message_text(
+                    "📭 No prediction history found.",
+                    reply_markup=main_keyboard(),
+                )
+
+                return
+
+            # MESSAGE
             text = "📊 *Recent Predictions*\n\n"
 
-            for item in history[:5]:
-                text += f"📰 {item['label']} | {item['confidence']}%\n"
+            for item in history:
+
+                emoji = "🚨" if item["label"].upper() == "FAKE" else "✅"
+
+                text += (
+                    f"{emoji} *{item['label']}*\n"
+                    f"📊 Confidence: {item['confidence']}%\n"
+                    f"⚠️ Risk: {item['risk_level']}\n"
+                    f"🕒 {item['created_at']}\n\n"
+                )
 
             await query.edit_message_text(
-                text, parse_mode="Markdown", reply_markup=main_keyboard()
+                text,
+                parse_mode="Markdown",
+                reply_markup=main_keyboard(),
             )
 
-        except:
+        except Exception as e:
+
+            print("HISTORY ERROR:", e)
+
             await query.edit_message_text(
-                "⚠️ Failed to load history", reply_markup=main_keyboard()
+                "⚠️ Failed to load history",
+                reply_markup=main_keyboard(),
             )
 
+    # ==========================================
+    # CLEAR HISTORY
+    # ==========================================
     elif data == "clear":
 
         try:
+
             requests.delete(
                 "https://tigrigna-fake-news-detection-using-nlp-1.onrender.com/history"
             )
 
             await query.edit_message_text(
-                "🗑 History cleared successfully!", reply_markup=main_keyboard()
+                "🗑 History cleared successfully!",
+                reply_markup=main_keyboard(),
             )
 
-        except:
+        except Exception as e:
+
+            print("CLEAR ERROR:", e)
+
             await query.edit_message_text(
-                "⚠️ Failed to clear history", reply_markup=main_keyboard()
+                "⚠️ Failed to clear history",
+                reply_markup=main_keyboard(),
             )
 
+    # ==========================================
+    # ANALYZE
+    # ==========================================
     elif data == "analyze":
 
         await query.edit_message_text(
-            "📩 Send me a news text to analyze.", reply_markup=main_keyboard()
+            "📩 Send me a news text to analyze.",
+            reply_markup=main_keyboard(),
         )
 
 
