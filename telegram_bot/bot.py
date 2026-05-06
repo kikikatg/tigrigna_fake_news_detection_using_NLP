@@ -109,6 +109,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ==========================================
 # PREDICTION FUNCTION
 # ==========================================
+# ==========================================
+# PREDICTION FUNCTION
+# ==========================================
 async def predict_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_text = update.message.text
@@ -116,29 +119,69 @@ async def predict_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
     loading = await update.message.reply_text("⏳ Analyzing news...")
 
     try:
-        response = requests.post(API_URL, json={"text": user_text}, timeout=60)
-        result = response.json()
 
-        print("BACKEND RESPONSE:", result)
+        # ==========================================
+        # SEND REQUEST
+        # ==========================================
+        response = requests.post(
+            API_URL,
+            json={"text": user_text},
+            timeout=120,
+        )
 
-        # ERROR HANDLING
-        if "detail" in result:
+        # DEBUG LOGS
+        print("STATUS CODE:", response.status_code)
+        print("RAW RESPONSE:", response.text)
+
+        # ==========================================
+        # CHECK STATUS
+        # ==========================================
+        if response.status_code != 200:
+
             await loading.edit_text(
-                f"⚠️ {result['detail']}", reply_markup=main_keyboard()
+                f"⚠️ Backend Error\n\nStatus: {response.status_code}",
+                reply_markup=main_keyboard(),
             )
+
             return
 
+        # ==========================================
+        # SAFE JSON PARSE
+        # ==========================================
+        try:
+            result = response.json()
+
+        except Exception:
+
+            await loading.edit_text(
+                "⚠️ Invalid response from backend server.",
+                reply_markup=main_keyboard(),
+            )
+
+            return
+
+        # ==========================================
+        # GET DATA
+        # ==========================================
         label = result.get("label", "Unknown")
         confidence = result.get("confidence", 0)
         risk = result.get("risk_level", "Unknown")
         model = result.get("model_used", "AI Model")
 
+        # ==========================================
+        # EMOJI
+        # ==========================================
         emoji = "🚨" if label.upper() == "FAKE" else "✅"
 
+        # ==========================================
         # CONFIDENCE BAR
+        # ==========================================
         bar_length = int(confidence // 10)
         bar = "█" * bar_length + "░" * (10 - bar_length)
 
+        # ==========================================
+        # FINAL MESSAGE
+        # ==========================================
         message = f"""
 {emoji} *Prediction Result*
 
@@ -152,13 +195,23 @@ async def predict_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🧠 Model: {model}
 """
 
-        # 🔥 IMPORTANT FIX: ADD BUTTONS HERE TOO
+        # ==========================================
+        # SEND RESULT
+        # ==========================================
         await loading.edit_text(
-            message, parse_mode="Markdown", reply_markup=main_keyboard()
+            message,
+            parse_mode="Markdown",
+            reply_markup=main_keyboard(),
         )
 
     except Exception as e:
-        await loading.edit_text(f"❌ Error: {str(e)}", reply_markup=main_keyboard())
+
+        print("PREDICTION ERROR:", e)
+
+        await loading.edit_text(
+            f"❌ Error: {str(e)}",
+            reply_markup=main_keyboard(),
+        )
 
 
 # ==========================================
