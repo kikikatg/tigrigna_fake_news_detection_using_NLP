@@ -14,22 +14,21 @@ export default function History() {
   // =====================================
   const fetchHistory = async () => {
 
-    try {
+  try {
 
-      const response = await API.get("/history");
+    const response = await API.get("/history");
 
-      setHistory(response.data);
+    setHistory(response.data.results || []);
 
-    } catch (error) {
+  } catch (error) {
 
-      console.log(error);
-    }
+    console.log(error);
 
-    finally {
+  } finally {
 
-      setLoading(false);
-    }
-  };
+    setLoading(false);
+  }
+};
 
   // =====================================
   // CLEAR HISTORY
