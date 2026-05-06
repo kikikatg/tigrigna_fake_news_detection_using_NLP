@@ -124,7 +124,7 @@ Database Storage (SQLite)
 
 ## 🔗 GitHub Repository
 
-👉 https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP
+👉 [View Source Code](https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP)
 
 ---
 
@@ -132,12 +132,16 @@ Database Storage (SQLite)
 
 ## 🔹 Frontend Application (Vercel)
 
-👉 https://tigrigna-fake-news-detection-using.vercel.app/
+👉 [Open Frontend App](https://tigrigna-fake-news-detection-using.vercel.app/)
 
 ---
 
 ## 🔹 Backend API (Render)
 
-👉 https://tigrigna-fake-news-detection-using-nlp-1.onrender.com
+👉 [Open Backend API](https://tigrigna-fake-news-detection-using-nlp-1.onrender.com)
 
 ---
+
+## 🤖 Telegram Bot
+
+👉 [Chat with the Bot](https://t.me/tigrigna_fake_news_detector_bot)
