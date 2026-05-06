@@ -10,21 +10,32 @@ from telegram.ext import (
 
 import requests
 import asyncio
+import os
+
+# ✅ NEW (for web service)
+from fastapi import FastAPI, Request
 
 # ==========================================
 # CONFIG
 # ==========================================
-import os
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_URL = "https://tigrigna-fake-news-detection-using-nlp-1.onrender.com/predict"
+
+# ==========================================
+# FASTAPI APP (NEW)
+# ==========================================
+app_web = FastAPI()
+
+# ==========================================
+# TELEGRAM APP (SAME)
+# ==========================================
+telegram_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 
 # ==========================================
 # MAIN KEYBOARD (REUSABLE)
 # ==========================================
 def main_keyboard():
-
     keyboard = [
         [
             InlineKeyboardButton("🧠 Analyze News", callback_data="analyze"),
@@ -35,17 +46,13 @@ def main_keyboard():
             InlineKeyboardButton("ℹ️ Help", callback_data="help"),
         ],
     ]
-
     return InlineKeyboardMarkup(keyboard)
 
 
 # ==========================================
-# HElP (REUSABLE)
+# HELP (REUSABLE)
 # ==========================================
-
-
 def get_help_text():
-
     return """
 🤖 TIGRIGNA FAKE NEWS AI DETECTOR - HELP
 
@@ -82,7 +89,6 @@ Send full news text for better accuracy.
 # START COMMAND
 # ==========================================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     await update.message.reply_text(
         """
 🤖 TIGRIGNA FAKE NEWS AI DETECTOR
@@ -102,86 +108,53 @@ Send any news text and I will analyze it:
 # HELP COMMAND
 # ==========================================
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     await update.message.reply_text(get_help_text(), reply_markup=main_keyboard())
 
 
 # ==========================================
 # PREDICTION FUNCTION
 # ==========================================
-# ==========================================
-# PREDICTION FUNCTION
-# ==========================================
 async def predict_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_text = update.message.text
-
     loading = await update.message.reply_text("⏳ Analyzing news...")
 
     try:
-
-        # ==========================================
-        # SEND REQUEST
-        # ==========================================
         response = requests.post(
             API_URL,
             json={"text": user_text},
             timeout=120,
         )
 
-        # DEBUG LOGS
         print("STATUS CODE:", response.status_code)
         print("RAW RESPONSE:", response.text)
 
-        # ==========================================
-        # CHECK STATUS
-        # ==========================================
         if response.status_code != 200:
-
             await loading.edit_text(
                 f"⚠️ Backend Error\n\nStatus: {response.status_code}",
                 reply_markup=main_keyboard(),
             )
-
             return
 
-        # ==========================================
-        # SAFE JSON PARSE
-        # ==========================================
         try:
             result = response.json()
-
         except Exception:
-
             await loading.edit_text(
                 "⚠️ Invalid response from backend server.",
                 reply_markup=main_keyboard(),
             )
-
             return
 
-        # ==========================================
-        # GET DATA
-        # ==========================================
         label = result.get("label", "Unknown")
         confidence = result.get("confidence", 0)
         risk = result.get("risk_level", "Unknown")
         model = result.get("model_used", "AI Model")
 
-        # ==========================================
-        # EMOJI
-        # ==========================================
         emoji = "🚨" if label.upper() == "FAKE" else "✅"
 
-        # ==========================================
-        # CONFIDENCE BAR
-        # ==========================================
         bar_length = int(confidence // 10)
         bar = "█" * bar_length + "░" * (10 - bar_length)
 
-        # ==========================================
-        # FINAL MESSAGE
-        # ==========================================
         message = f"""
 {emoji} *Prediction Result*
 
@@ -195,9 +168,6 @@ async def predict_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🧠 Model: {model}
 """
 
-        # ==========================================
-        # SEND RESULT
-        # ==========================================
         await loading.edit_text(
             message,
             parse_mode="Markdown",
@@ -205,9 +175,7 @@ async def predict_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     except Exception as e:
-
         print("PREDICTION ERROR:", e)
-
         await loading.edit_text(
             f"❌ Error: {str(e)}",
             reply_markup=main_keyboard(),
@@ -217,63 +185,41 @@ async def predict_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ==========================================
 # BUTTON HANDLER
 # ==========================================
-# ==========================================
-# BUTTON HANDLER
-# ==========================================
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
     await query.answer()
-
     data = query.data
 
-    # ==========================================
-    # HELP
-    # ==========================================
     if data == "help":
-
         await query.edit_message_text(
             get_help_text(),
             reply_markup=main_keyboard(),
         )
 
-    # ==========================================
-    # HISTORY
-    # ==========================================
     elif data == "history":
-
         try:
-
             res = requests.get(
                 "https://tigrigna-fake-news-detection-using-nlp-1.onrender.com/history",
                 timeout=30,
             )
 
-            # CHECK STATUS
             if res.status_code != 200:
                 raise Exception("Backend API failed")
 
-            # JSON RESPONSE
             data_json = res.json()
-
-            # GET RESULTS
             history = data_json.get("results", [])
 
-            # EMPTY HISTORY
             if not history:
-
                 await query.edit_message_text(
                     "📭 No prediction history found.",
                     reply_markup=main_keyboard(),
                 )
-
                 return
 
-            # MESSAGE
             text = "📊 *Recent Predictions*\n\n"
 
             for item in history:
-
                 emoji = "🚨" if item["label"].upper() == "FAKE" else "✅"
 
                 text += (
@@ -290,44 +236,29 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
         except Exception as e:
-
             print("HISTORY ERROR:", e)
-
             await query.edit_message_text(
                 "⚠️ Failed to load history",
                 reply_markup=main_keyboard(),
             )
 
-    # ==========================================
-    # CLEAR HISTORY
-    # ==========================================
     elif data == "clear":
-
         try:
-
             requests.delete(
                 "https://tigrigna-fake-news-detection-using-nlp-1.onrender.com/history"
             )
-
             await query.edit_message_text(
                 "🗑 History cleared successfully!",
                 reply_markup=main_keyboard(),
             )
-
         except Exception as e:
-
             print("CLEAR ERROR:", e)
-
             await query.edit_message_text(
                 "⚠️ Failed to clear history",
                 reply_markup=main_keyboard(),
             )
 
-    # ==========================================
-    # ANALYZE
-    # ==========================================
     elif data == "analyze":
-
         await query.edit_message_text(
             "📩 Send me a news text to analyze.",
             reply_markup=main_keyboard(),
@@ -335,27 +266,38 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ==========================================
-# MAIN FUNCTION
+# REGISTER HANDLERS (NEW LOCATION)
 # ==========================================
-def main():
-
-    print("🤖 Advanced Telegram Bot Running...")
-
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
-
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, predict_news))
-
-    app.add_handler(CallbackQueryHandler(button_handler))
-
-    app.run_polling()
+telegram_app.add_handler(CommandHandler("start", start))
+telegram_app.add_handler(CommandHandler("help", help_command))
+telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, predict_news))
+telegram_app.add_handler(CallbackQueryHandler(button_handler))
 
 
-if __name__ == "__main__":
+# ==========================================
+# WEBHOOK ROUTE (NEW)
+# ==========================================
+@app_web.post(f"/{BOT_TOKEN}")
+async def webhook(request: Request):
+    data = await request.json()
+    update = Update.de_json(data, telegram_app.bot)
+    await telegram_app.process_update(update)
+    return {"status": "ok"}
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
 
-    main()
+# ==========================================
+# HEALTH CHECK (NEW)
+# ==========================================
+@app_web.get("/")
+def home():
+    return {"message": "Bot is running"}
+
+
+# ==========================================
+# STARTUP (SET WEBHOOK)
+# ==========================================
+@app_web.on_event("startup")
+async def on_startup():
+    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{BOT_TOKEN}"
+    await telegram_app.bot.set_webhook(webhook_url)
+    print("Webhook set to:", webhook_url)
