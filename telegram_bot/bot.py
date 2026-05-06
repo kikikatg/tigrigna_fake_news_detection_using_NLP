@@ -298,6 +298,13 @@ def home():
 # ==========================================
 @app_web.on_event("startup")
 async def on_startup():
+    print("🚀 Starting Telegram bot...")
+
+    # ✅ REQUIRED
+    await telegram_app.initialize()
+
     webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{BOT_TOKEN}"
+
     await telegram_app.bot.set_webhook(webhook_url)
-    print("Webhook set to:", webhook_url)
+
+    print("✅ Webhook set to:", webhook_url)
