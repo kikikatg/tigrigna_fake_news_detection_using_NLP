@@ -1,147 +1,188 @@
-# 🧠 Tigrigna Fake News Detection System
+# Tigrigna Fake News Detection System
 
-## 📌 Project Overview
+## Overview
 
-The **Tigrigna Fake News Detection System** is an AI-powered full-stack web application developed to automatically classify Tigrigna news content as **REAL** or **FAKE** using **Natural Language Processing (NLP)** and **Machine Learning**.
+The Tigrigna Fake News Detection System is a full-stack AI-powered web application developed to classify Tigrigna news content as either **REAL** or **FAKE** using Natural Language Processing (NLP) and Machine Learning techniques.
 
-The system was developed as a **final-year Computer Science and Engineering team project** to help combat the increasing spread of misinformation in low-resource languages such as **Tigrigna**.
+The project was developed as a final-year Computer Science and Engineering project with the goal of addressing misinformation challenges in low-resource languages such as Tigrigna.
 
-The application uses:
-- ⚛️ **React + Vite** for the frontend
-- ⚡ **FastAPI** for the backend API
-- 🧠 **Machine Learning (SVM)** for prediction
-- 🗄️ **SQLite + SQLAlchemy** for prediction history storage
-- ☁️ **Vercel + Render** for deployment
+The system integrates a React frontend, FastAPI backend, and machine learning models to provide real-time fake news prediction and analysis.
 
 ---
 
-# 🎯 Objectives
+## Key Features
 
-- Detect fake news written in Tigrigna language
-- Build an intelligent automated fake news classification system
-- Reduce misinformation spread through AI-based analysis
-- Provide a fast, responsive, and user-friendly web application
-- Store and manage prediction history
-
----
-
-# 🚀 Features
-
-- 📰 Real-time fake news prediction
-- 🤖 Machine Learning classification (REAL / FAKE)
-- 📊 Confidence score display
-- ⚠️ Risk level analysis
-- 🧾 Source pattern identification
-- 🕒 Prediction history with timestamps
-- 🗑️ Clear history functionality
-- 🎨 Modern responsive React UI
-- ⚡ FastAPI backend API integration
-- ☁️ Full-stack cloud deployment
-- 🔒 CORS-enabled secure API communication
+* Real-time fake news prediction
+* Machine learning-based text classification
+* Confidence score analysis
+* Risk-level indication
+* Prediction history management
+* Responsive frontend interface
+* REST API integration using FastAPI
+* SQLite database integration
+* Full-stack cloud deployment
 
 ---
 
-# 🧠 Technologies Used
+## Technologies Used
 
-## 🔹 Frontend
+### Frontend
 
-- React.js
-- Vite
-- Axios
-- CSS / Responsive UI
+* React.js
+* Vite
+* Axios
+* CSS
 
-## 🔹 Backend
+### Backend
 
-- FastAPI
-- Uvicorn
-- SQLAlchemy
-- Pydantic
-- SQLite
+* FastAPI
+* Uvicorn
+* SQLAlchemy
+* Pydantic
+* SQLite
 
-## 🔹 Machine Learning & NLP
+### Machine Learning & NLP
 
-- Scikit-learn
-- Pandas
-- NumPy
-- Joblib
-
-### NLP Techniques
-
-- Text cleaning
-- Normalization
-- Tokenization
-- Stopword removal
-
-### Feature Extraction
-
-- **TF-IDF Vectorization**
-
-### Machine Learning Models Tested
-
-- Naive Bayes
-- Logistic Regression
-- **Support Vector Machine (SVM) – Final Model**
-
-✅ The SVM model was selected due to its strong accuracy and overall performance.
+* Scikit-learn
+* Pandas
+* NumPy
+* Joblib
 
 ---
 
-# 📊 Model Performance
+## NLP Pipeline
 
-| Metric | Score |
-|--------|--------|
-| Accuracy | ~96% |
-| Precision | High |
-| Recall | High |
-| F1-Score | High |
+The NLP preprocessing workflow includes:
 
-### Evaluation Methods
-
-- Confusion Matrix
-- Cross-validation
-- Classification report
+* Text cleaning
+* Text normalization
+* Tokenization
+* Stopword removal
+* TF-IDF vectorization
 
 ---
 
-# 🏗️ System Architecture
+## Machine Learning Models Evaluated
+
+Several machine learning models were tested during experimentation:
+
+* Naive Bayes
+* Logistic Regression
+* Support Vector Machine (SVM)
+
+The final system uses the SVM model due to its strong classification performance on the dataset.
+
+---
+
+## Model Performance
+
+| Metric             | Result |
+| ------------------ | ------ |
+| Accuracy           | ~96%   |
+| Model Type         | SVM    |
+| Feature Extraction | TF-IDF |
+
+Evaluation techniques included:
+
+* Cross-validation
+* Confusion matrix
+* Classification report
+
+---
+
+## System Architecture
 
 ```text
 Frontend (React + Vite)
-            ↓
+        ↓
 Axios API Requests
-            ↓
+        ↓
 FastAPI Backend
-            ↓
+        ↓
 NLP Preprocessing
-            ↓
+        ↓
 TF-IDF Vectorization
-            ↓
+        ↓
 SVM Model Prediction
-            ↓
-Prediction Result + Confidence
-            ↓
-Database Storage (SQLite)
-
-## 🔗 GitHub Repository
-
-👉 [View Source Code](https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP)
+        ↓
+Prediction Result
+        ↓
+SQLite Database Storage
+```
 
 ---
 
-# 🌐 Live Application Links
+## Installation
 
-## 🔹 Frontend Application (Vercel)
+### Clone the repository
 
-👉 [Open Frontend App](https://tigrigna-fake-news-detection-using.vercel.app/)
+```bash
+git clone https://github.com/kikikatg/tigrigna_fake_news_detection_using_NLP.git
+```
+
+### Navigate into the project directory
+
+```bash
+cd tigrigna_fake_news_detection_using_NLP
+```
+
+### Install frontend dependencies
+
+```bash
+npm install
+```
+
+### Install backend dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Start frontend
+
+```bash
+npm run dev
+```
+
+### Start backend
+
+```bash
+uvicorn main:app --reload
+```
 
 ---
 
-## 🔹 Backend API (Render)
+## Live Deployment
 
-👉 [Open Backend API](https://tigrigna-fake-news-detection-using-nlp-1.onrender.com)
+### Frontend Application
+
+https://tigrigna-fake-news-detection-using.vercel.app/
+
+### Backend API
+
+https://tigrigna-fake-news-detection-using-nlp-1.onrender.com
+
+### Telegram Bot
+
+https://t.me/tigrigna_fake_news_detector_bot
 
 ---
 
-## 🤖 Telegram Bot
+## Future Improvements
 
-👉 [Chat with the Bot](https://t.me/tigrigna_fake_news_detector_bot)
+* Deep learning model integration
+* Improved dataset expansion
+* Enhanced multilingual support
+* Explainable AI prediction analysis
+* User authentication system
+
+---
+
+## Author
+
+Kiros Asefa Tesfay
+
+* GitHub: https://github.com/kikikatg
+* LinkedIn: https://www.linkedin.com/in/kiros-asefa/
+
+---
