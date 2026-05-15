@@ -7,7 +7,7 @@ __pycache__/
 
 # Models (optional if large)
 *.pkl
-
+ .env
 # System files
 .DS_Store
 Thumbs.db
